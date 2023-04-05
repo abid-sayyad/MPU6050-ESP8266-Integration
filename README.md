@@ -17,7 +17,13 @@ This code is designed for the NodeMCU board to interface with an MPU6050 sensor 
 | GND  | GND  |
 | SDA  | D2  |
 | SCL | D1  |
-![Uploading WhatsApp Image 2023-04-05 at 07.02.49 (1).jpeg…]()
+
+
+![WhatsApp Image 2023-04-05 at 07 02 49](https://user-images.githubusercontent.com/49099853/229961431-35a8a0a1-0e48-46f1-bfca-35c481b8adf3.jpeg)
+
+![WhatsApp Image 2023-04-05 at 07 02 49 (1)](https://user-images.githubusercontent.com/49099853/229961605-449d8083-8ab8-4fa7-b3d3-a07cf363bda0.jpeg)
+
+
 
 
 ## Usage
@@ -27,6 +33,20 @@ Make the required changes to the "secrets.h" file with your credentials
 Upload the code to the NodeMCU board
 Open the Serial Monitor to monitor the collected data
 View the collected data on the MQTT Broker or on the dashboard provided by the Broker.
+
+## Setup
+1. Arduino IDE Setup
+   - Install the Arduino IDE from the official website.
+   - Add the ESP8266 Board to the Arduino IDE by following these instructions.
+2. Libraries
+   - The following libraries are required for this project:
+     - Wire
+     - ESP8266WiFi
+     - ArduinoJson
+     - PubSubClient
+     - WiFiClientSecure
+   These libraries can be installed from the Library Manager in the Arduino IDE.
+
 ## Code Details
 The code begins by including the required libraries, "Wire.h", "WiFi.h", "ArduinoJson.h", and "PubSubClient.h". The secrets.h file is included, which contains the WiFi login, MQTT Connection, and CA Cert credentials.
 
@@ -39,4 +59,8 @@ The publishMessage function publishes the message packet to the server.
 The loop function gets data from the MPU6050 sensor and sends it to the MQTT server in the JSON format.
 
 ## Demo
-Insert demo video here
+
+
+https://user-images.githubusercontent.com/49099853/229960284-95da4cdb-8557-45df-b71f-fd9a55917c47.mp4
+
+
