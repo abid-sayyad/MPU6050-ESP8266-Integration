@@ -63,4 +63,5 @@ The loop function gets data from the MPU6050 sensor and sends it to the MQTT ser
 
 https://user-images.githubusercontent.com/49099853/229960284-95da4cdb-8557-45df-b71f-fd9a55917c47.mp4
 
+![MPU6050-NodeMCU-1](https://user-images.githubusercontent.com/49099853/229961736-a881a4bd-e326-4285-a79b-8a2bd4cb3369.png)
 
