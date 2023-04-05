@@ -27,12 +27,12 @@ This code is designed for the NodeMCU board to interface with an MPU6050 sensor 
 
 
 ## Usage
--Clone this repository
--Open the code in the Arduino IDE
--Make the required changes to the "secrets.h" file with your credentials
--Upload the code to the NodeMCU board
--Open the Serial Monitor to monitor the collected data
--View the collected data on the MQTT Broker or on the dashboard provided by the Broker.
+- Clone this repository
+- Open the code in the Arduino IDE
+- Make the required changes to the "secrets.h" file with your credentials
+- Upload the code to the NodeMCU board
+- Open the Serial Monitor to monitor the collected data
+- View the collected data on the MQTT Broker or on the dashboard provided by the Broker.
 
 ## Setup
 1. Arduino IDE Setup
