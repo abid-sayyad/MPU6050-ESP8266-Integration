@@ -13,6 +13,13 @@
 #include <PubSubClient.h>
 #include <WiFiClientSecure.h>
 
+// Define the interval between sensor readings and publications in milliseconds
+const unsigned long interval = 500;
+
+// Keep track of the last time a reading was taken and a message was published
+unsigned long lastReadingTime = 0;
+unsigned long lastPublishTime = 0;
+
 const int led = 5;
 
 //Initializing Secure WiFi Client object
@@ -97,7 +104,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 //The following function publishes the message packet to the server
 void publishMessage(const char* topic, String payload , boolean retained){
   if (client.publish(topic, payload.c_str(), true))
-      Serial.println("Message publised ["+String(topic)+"]: "+payload);
+      Serial.println("Message publised ["+String(topic)+"]: "+payload);  
 }
 
 void setup()
@@ -123,67 +130,45 @@ void setup()
   #endif
 
   client.setServer(mqtt_server, mqtt_port); //establishing connection with the MQTT server
-  client.setCallback(callback); 
+  client.setCallback(callback);
+
   
 }
 void loop()
 {
-  if (!client.connected()) reconnect(); // check if client is connected
+    if (!client.connected()) reconnect(); // check if client is connected
   client.loop();
 
+  unsigned long currentTime = millis();
+
+  // Take a new sensor reading if the interval has passed
+  if (currentTime - lastReadingTime >= interval) {
   Wire.beginTransmission(MPU);
-  Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
+  Wire.write(0x43);  // starting with register 0x3B (ACCEL_XOUT_H)
   Wire.endTransmission(false);
   //Get data from Sensor (14 consecutive bytes)
-  Wire.requestFrom(MPU,14,true);  
+  Wire.requestFrom(MPU,4,true);  
   //Read data byte by byte (16 bits is 8 bits | 8 bits)
   //Each value is composed by 16 bits (2 bytes)
-  GyX=Wire.read()<<8|Wire.read();  //0x3B (GYRO_XOUT_H) & 0x3C (GYRO_XOUT_L)     
-  GyY=Wire.read()<<8|Wire.read();  //0x3D (GYRO_YOUT_H) & 0x3E (GYRO_YOUT_L)
-  GyZ=Wire.read()<<8|Wire.read();  //0x3F (GYRO_ZOUT_H) & 0x40 (GYRO_ZOUT_L)
-  Tmp=Wire.read()<<8|Wire.read();  //0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
   AcX=Wire.read()<<8|Wire.read();  //0x43 (ACCEL_XOUT_H) & 0x44 (ACCEL_XOUT_L)
   AcY=Wire.read()<<8|Wire.read();  //0x45 (ACCEL_YOUT_H) & 0x46 (ACCEL_YOUT_L)
-  AcZ=Wire.read()<<8|Wire.read();  //0x47 (ACCEL_ZOUT_H) & 0x48 (ACCEL_ZOUT_L)
 
   //Adapts to range from 0 to 2000 m/s^2
   AcX = map(AcX,minVal,maxVal,2000,0);
   AcY = map(AcY,minVal,maxVal,2000,0);
-  AcZ = map(AcZ,minVal,maxVal,2000,0);
-  
-  //Adapts to range from -180º to 180º
-  int xAng = map(GyX,minVal,maxVal,180,-180);
-  int yAng = map(GyY,minVal,maxVal,180,-180);
-  int zAng = map(GyZ,minVal,maxVal,180,-180); 
+
    
   //Send X axis accelerometer value for serial monitor
   Serial.print("AcX = "); Serial.print(AcX);
    
   //Send Y axis accelerometer value for serial monitor
   Serial.print(" | AcY = "); Serial.print(AcY);
+    lastReadingTime = currentTime;
+  }
 
-  //Send Z axis accelerometer value for serial monitor
-  Serial.print(" | AcZ = "); Serial.print(AcZ);
-
-   
-  //Send Temperature value for serial
-  //Calculates the temperature given the datasheet values (ºC)
-  // 340 is the number of levels per ºC (from datasheet)
-  Serial.print(" | Tmp = "); Serial.print(float(Tmp + offsetTempLevels)/340 + offsetTemp);
-  
-   
-  //Send X axis gyroscope angle value for serial monitor
-  Serial.print(" | GyX = "); Serial.print(xAng);
-
-   
-  //Send Y axis gyroscope angle value for serial monitor  
-  Serial.print(" | GyY = "); Serial.print(yAng);
- 
-   
-  //Send Z axis gyroscope angle value for serial monitor
-  Serial.print(" | GyZ = "); Serial.println(zAng);
- 
-  //Create a Json object
+  // Publish a message if the interval has passed
+  if (currentTime - lastPublishTime >= interval) {
+     //Create a Json object
   DynamicJsonDocument doc(1024);
 
   doc["deviceId"] = "NodeMCU"; //Define the 'key':'value' pairs for the JSON file
@@ -194,9 +179,14 @@ void loop()
   //Serialize or reduce the JSON so that there are no spaces before transmission
   char mqtt_message[128];
   serializeJson(doc, mqtt_message);
-  //Publish the thus created packet
+    // Publish the message to the MQTT server
+    //Publish the thus created packet
   publishMessage("esp8266_data", mqtt_message, true);
+  
+    lastPublishTime = currentTime;
+  }
 
-  //Wait 5000 ms, after that, start new measurement and transmit.
-  delay(5000);
+  // // Check for incoming MQTT messages
+  // if (!client.connected()) {
+  //   reconnect();
 }
